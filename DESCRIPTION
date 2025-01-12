@@ -1,7 +1,7 @@
-Package: sdm
+Package: sdmATM2
 Type: Package
-Title: Species Distribution Modelling
-Version: 1.2-55
+Title: Species Distribution Modelling (Advanced Threshold Metrics2)
+Version: 1.2-559
 Date: 2025-01-11
 Authors@R: c(person(given = "Babak",
                       family = "Naimi",
