@@ -8,10 +8,10 @@
 
 .statFix <- function(x) {
   if (is.numeric(x)) {
-    x <- ifelse(x > 17,17,x)
+    x <- ifelse(x > 22,22,x)
     x <- ifelse(x < 1,1,x)
     x <- unique(x)
-    x <- c('sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr','mcr','or','ommission','commission','predicted.prevalence')[x]
+    x <- c('sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr','mcr','or','ommission','commission','predicted.prevalence','Jaccard','Sorensen','F_measure','OPR','UPR')[x]
   } else {
     x <- tolower(x)
     for (i in seq_along(x)) {
@@ -33,7 +33,7 @@
       else if (any(!is.na(pmatch(c("ph"),x[i])))) x[i] <- 'phi'
     }
     x <- unique(x)
-    w <- which(x %in% c('sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr','mcr','or','ommission','commission','predicted.prevalence'))
+    w <- which(x %in% c('sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr','mcr','or','ommission','commission','predicted.prevalence','Jaccard','Sorensen','F_measure','OPR','UPR'))
     x <- x[w]
   }
   x
@@ -43,16 +43,16 @@
 .threshold <- function(o,p,th,stat=0) {
   if (missing(th)) th <- sort(unique(p))
   else th <- sort(unique(th))
-  e <- matrix(nrow=length(th),ncol=18)
+  e <- matrix(nrow=length(th),ncol=23)
   colnames(e) <- c('threshold','sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr',
-                   'mcr','or','ommission','commission','prevalence','obsPrevalence')
+                   'mcr','or','ommission','commission','prevalence','obsPrevalence','Jaccard','Sorensen','F_measure','OPR','UPR')
   
   e[,1] <- th
   for (i in seq_along(th)) {
     w <- which(p >= th[i])
     pt <- rep(0,length(p))
     pt[w] <- 1
-    e[i,2:18] <- .evaluate.cmx(.cmx(o,pt))
+    e[i,2:23] <- .evaluate.cmx(.cmx(o,pt))
   }
   
   w <- which(is.na(e[,"ppv"]) | is.na(e[,'npv']))
@@ -86,15 +86,15 @@
   w <- which(o == 1)
   q <- quantile(p[w],probs=c(0.1,0.05,0.01,0),na.rm=TRUE)
   
-  e2 <-matrix(nrow=length(q),ncol=18)
+  e2 <-matrix(nrow=length(q),ncol=23)
   colnames(e2) <- c('threshold','sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr',
-                    'mcr','or','ommission','commission','prevalence','obsPrevalence')
+                    'mcr','or','ommission','commission','prevalence','obsPrevalence','Jaccard','Sorensen','F_measure','OPR','UPR')
   e2[,1] <- q
   for (i in seq_along(q)) {
     w <- which(p >= q[i])
     pt <- rep(0,length(p))
     pt[w] <- 1
-    e2[i,2:18] <- .evaluate.cmx(.cmx(o,pt))
+    e2[i,2:23] <- .evaluate.cmx(.cmx(o,pt))
   }
   
   th.criteria <- c("sp=se","max(se+sp)","min(cost)","minROCdist","max(kappa)","max(ppv+npv)","ppv=npv","max(NMI)","max(ccr)","prevalence","max(MCC)","P10","P5","P1","P0")
@@ -215,8 +215,16 @@
   NMI <- 1-((-sum(v*log(v)) + sum(pp*log(pp))) / (N*log(N) - sum(op*log(op))))
   TSS <- sens+spec-1
   
+  # https://doi.org/10.1111/jbi.13402
+  Jaccard <- TP / (FN + TP + FP)
+  Sorensen <- 2 * TP / (FN + 2 * TP + FP)
+  F_measure <- 2 * Jaccard
+  OPR <- FP / (TP + FP)
+  UPR <- 1 - sens
+
   return(round(c(sensitivity=sens,specificity=spec,TSS=TSS,MCC=mcc,F1=f1s,Kappa=Kappa,NMI=NMI,phi=phi,ppv=ppv,npv=npv,ccr=ccr,
-                 mcr=mcr,or=or,ommission=ommission,commission=commission,predicted.prevalence=pred.prev,prevalence=prev),4))
+                 mcr=mcr,or=or,ommission=ommission,commission=commission,predicted.prevalence=pred.prev,prevalence=prev,
+                 Jaccard=Jaccard,Sorensen=Sorensen,F_measure=F_measure,OPR=OPR,UPR=UPR),4))
 }
 #---- 
 #-----------
@@ -339,7 +347,7 @@
   e@statistics[['AUC']] <- .auc(o,p)
   e@statistics[['COR']] <- .cor(o,p)
   e@statistics[['Deviance']] <- .deviance_binomial(o,p)
-  e@threshold_based <- .threshold(o,p,stat = c(1:12,14:16))
+  e@threshold_based <- .threshold(o,p,stat = c(1:12,14:22))
   e
 }
 #-------
@@ -404,7 +412,7 @@ setMethod('evaluates', signature(x='vector',p='vector'),
   if (.dist == 'binomial') {
     s1 <- c('AUC','COR','Deviance','obs.prevalence')
     
-    s2 <- c('threshold','sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr','mcr','ommission', 'commission', 'prevalence')
+    s2 <- c('threshold','sensitivity','specificity','TSS','MCC','F1','Kappa','NMI','phi','ppv','npv','ccr','mcr','ommission', 'commission', 'prevalence','Jaccard','Sorensen','F_measure','OPR','UPR')
     
   } else {
     s1 <- c('RMSE','COR','MAE','Deviance')
