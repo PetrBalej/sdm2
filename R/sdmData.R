@@ -355,9 +355,11 @@ setReplaceMethod('.addLog','sdmdata',
   # ANY: whether a record should be removed if only one/some predictor variable is/are NA, or all should be NA to be removed?
   rm.na <-0; rm.duplicate <- 0
   w <- nrow(x)
-  x <- unique(x)
-  if (nrow(x) < w) rm.duplicate <- w - nrow(x)
-  
+
+  # commented to keepDuplicates
+  # x <- unique(x)
+  # if (nrow(x) < w) rm.duplicate <- w - nrow(x)
+
   w <- nrow(x)
   if (!missing(nsp)) {
     if (length(nsp) > 1) ww <- which(apply(x[,which(colnames(x) %in% nsp)],1,function(x){any(is.na(x))}))
