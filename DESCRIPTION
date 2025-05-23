@@ -1,6 +1,6 @@
 Package: sdm
 Type: Package
-Title: Species Distribution Modelling (paper1: new metrics (Jaccard, ...), keepDuplicates)
+Title: Species Distribution Modelling (new metrics (Jaccard, Sorensen) + keepDuplicates)
 Version: 1.2-56.999999
 Date: 2025-05-13
 Authors@R: c(person(given = "Babak",
